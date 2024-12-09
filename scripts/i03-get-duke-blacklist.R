@@ -1,6 +1,6 @@
 # Getting the Duke blacklisted regions and storing as a GRanges
 
-library(tidyverse)
+library(tidyr)
 library(GenomicRanges)
 library(httr)
 

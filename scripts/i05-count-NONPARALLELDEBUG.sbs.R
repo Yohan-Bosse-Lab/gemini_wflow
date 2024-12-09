@@ -1,10 +1,12 @@
 # Note: bam file is assumed to be sorted and indexed with duplicate fragments marked or removed
 
 args <- commandArgs(trailingOnly = TRUE)
-bamFile <- args[1]
-outDir <- args[2] 
-tmpDir <- args[3]
-nProcesses <- as.numeric(args[4])
+bamFile <- '/mnt/sde/renseb01/Documents/gemini_wflow/bams/file2_Aligned.sortedByCoord.out.bam'
+outDir <- '../outDir/' 
+tmpDir <- '../temp/' 
+nProcesses <- as.numeric(4)
+
+
 
 library(dplyr)
 library(tidyr)
@@ -17,12 +19,12 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 library(Biostrings)
 library(VariantAnnotation)
 library(rtracklayer)
-library(foreach)
-library(doParallel)
+#library(foreach)
+#library(doParallel)
 
 # Setting up the parallel computing environment
-cl <- makeCluster(nProcesses)
-registerDoParallel(cl)
+#cl <- makeCluster(nProcesses)
+#registerDoParallel(cl)
 
 if (!dir.exists(file.path(outDir, "variants"))) dir.create(file.path(outDir, "variants"))
 if (!dir.exists(file.path(outDir, "cts"))) dir.create(file.path(outDir, "cts"))
@@ -52,22 +54,22 @@ mcols(bins) <- matrix(ncol = length(ct.names), nrow = length(bins), data = 0, di
 # Defining chunks of genome to process together, each chunk is adjaent bins from the same chromosome.
 # Reducing nParallelBins will save memory but increase runtime which may be necessary for >1-2x coverage WGS
 # data (depending on the amount of memory available).
-nParallelBins <- 20
+nParallelBins <- 1
 bins.by.chr <- bins %>% split(., seqnames(.))
 st <- 1
 bin.grp <- NULL
 for (i in 1:length(bins.by.chr)) {
- n.bins <- length(bins.by.chr[[i]])
- chr.grp <- rep(st:(st + ceiling(n.bins / nParallelBins)), each = nParallelBins) %>% head(., n.bins)
- bin.grp <- c(bin.grp, chr.grp)
- st <- max(bin.grp) + 1
+  n.bins <- length(bins.by.chr[[i]])
+  chr.grp <- rep(st:(st + ceiling(n.bins / nParallelBins)), each = nParallelBins) %>% head(., n.bins)
+  bin.grp <- c(bin.grp, chr.grp)
+  st <- max(bin.grp) + 1
 }
 bins <- split(bins, bin.grp)
 
 # Defining the paths to gnomAD variants for each chromosome separately
 gnomadDir <- "../outDir/gnomad"
 chrs <- paste0("chr", c(1:22, "X", "Y"))
-#chrs = paste0("chr",c(19:22))
+#chrs = paste0("chr",c(21:22))
 
 gnomadVariants <- file.path(gnomadDir, paste0("gnomad.genomes.r3.0.sites.sbs.", chrs, ".rds"))
 names(gnomadVariants) <- chrs
@@ -92,50 +94,49 @@ minPhred <- 30
 minMAPQ <- 40
 
 # Defining the set of bins for each process to process
-bins <- split(bins, cut(seq_along(bins), nProcesses, labels = FALSE))
+#bins <- split(bins, cut(seq_along(bins), nProcesses, labels = FALSE))
 
-print(paste0('Get everything, just before the foreach loop, The time is: ',Sys.time()))
+print(paste0('Just before the foreach loop, The time is: ',Sys.time()))
 
-ct.gr <- foreach(i = 1:nProcesses, .combine = "c", .packages = c("dplyr", "tidyr", "readr", "tibble", "data.table", "GenomicRanges", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38", "Biostrings", "rtracklayer")) %dopar% {
+#ct.gr <- foreach(i = 1:nProcesses, .combine = "c", .packages = c("dplyr", "tidyr", "readr", "tibble", "data.table", "GenomicRanges", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38", "Biostrings", "rtracklayer")) %dopar% {
 
-  print(paste0('Start of i foreach parallel loop ', i,',out of ',nProcesses,', The time is: ',Sys.time()))
-
-  setDTthreads(threads = 1)
-
-  # Defining a file path to write variants. 
+#for(i in 1:length(bins)){
+  for(i in 26603:26615){
+  # Defining a file path to write variants.
   # If the file already exists (e.g. from a failed run) then remove it
   variantFile <- file.path(outDir, "variants", paste0(sampleName, "_variants_process", i, ".txt"))
   if (file.exists(variantFile)) file.remove(variantFile)
-
+  
   # Defining a file path to write the pysam pileup to
   # # If the file already exists (e.g. from a failed run) then remove it
   pileupFile <- file.path(tmpDir, paste0(sampleName, "_pileup_process", i, ".txt"))
   if (file.exists(pileupFile)) file.remove(pileupFile)
-
+  
   # Initializing a GRanges to store gnomad variants
   gnomad <- GRanges()
-
+  
   # Getting the regions that will be processed by process N
   binsN <- bins[[i]]
+  chunk <- reduce(binsN)
 
-  for (j in 1:length(binsN)) {
-
+  #  for (j in 1:length(binsN)) {
+    
     # Reducing binsN[[j]] to a single chunk
-    chunk <- reduce(binsN[[j]])
+   # chunk <- reduce(binsN[[j]])
     stopifnot(length(chunk) == 1)
-
+    
     region <- as.character(chunk)
     if (bamGenome == "GRCh37") {
       region <- gsub("^chr", "", region)
-    } 
-  
+    }
+    
     # Pileup using pysam
     pyCmd <- paste("python3", pyFile, bamFile, region, minPhred, minMAPQ, pileupFile)
     system(pyCmd)
-
+    
     cts <- count_sbs(pileupFile = pileupFile,
                      bamGenome = bamGenome,
-                     region.gr = binsN[[j]],
+                     region.gr = binsN,
                      bothMates = TRUE,
                      gnomadFilter = TRUE,
                      gnomadVariants = gnomadVariants,
@@ -145,23 +146,51 @@ ct.gr <- foreach(i = 1:nProcesses, .combine = "c", .packages = c("dplyr", "tidyr
                      knownSomatic = knownSomatic,
                      writeVariants = TRUE,
                      variantFile = variantFile)
-
-    mcols(binsN[[j]]) <- cts
-
-    print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))
-
-  } # End of j loop
-
+    
+    mcols(binsN) <- cts
+    
+  # if(j %% 5 == 0) print(paste0('end of j loop ', j,' length of BinsN: ',length(binsN),', The time is: ',Sys.time()))
+    
+  #} # End of j loop
+  
   # Removing temporary files
-  if (file.exists(pileupFile)) invisible(file.remove(pileupFile))
-
-  return(unlist(binsN, use.names = F))
+#  if (file.exists(pileupFile)) invisible(file.remove(pileupFile))
+  
+  # return(unlist(binsN, use.names = F))
+  if(i ==26603) ct.gr = binsN
+  if(i >1) ct.gr = c(ct.gr,binsN) 
+  print(paste0('end of i for each parallel loop ', i,', The time is: ',Sys.time()))
+  
 } # End of i loop
 
-print(paste0('end of i and j loops, Time is: ', Sys.time()))
+print('Just before saving and done')
 
 # Saving the number of evaluable/variant positions to file
 saveRDS(ct.gr, file = file.path(outDir, "cts", paste0(sampleName, "_cts.rds")))
 
-print('Done')
+
+
+
+#
+.generate_genome = function(genomefasta = 'GRCh37.p13.genome.fa',
+                            annotation.gtf = 'gencode.v19.annotation.gtf',
+                            genomedir = 'GRCh37',
+                            threads = 12){
+  cmd = paste0('STAR --genomeSAindexNbases 12 --runThreadN ',threads,' --runMode genomeGenerate --genomeDir ',
+               genomedir,
+               ' --genomeFastaFiles ',
+               genomefasta,
+               ' --sjdbGTFfile ',
+               annotation.gtf,
+               ' --sjdbOverhang 99')
+  
+  #system(cmd)
+  
+  #message(cmd)
+  
+  #message(paste0('Done generate_genome, Time is: ',Sys.time()))
+  
+  return(cmd)
+}
+
 

@@ -1,6 +1,6 @@
 # Makes 100kb bins and groups them for merging into larger 2.5Mb bins
 
-library(tidyverse)
+library(tidyr)
 library(BSgenome.Hsapiens.UCSC.hg19)
 
 dir.create("../outDir/bins", showWarnings = F)

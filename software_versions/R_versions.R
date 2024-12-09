@@ -1,4 +1,4 @@
-# moule load conda_R/4.0.x
+# module load conda_R/4.0.x
 
 library(VariantAnnotation)
 library(tidyverse)

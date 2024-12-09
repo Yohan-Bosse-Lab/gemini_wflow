@@ -1,4 +1,4 @@
-library(tidyverse)
+library(tidyr)
 library(SummarizedExperiment)
 
 # Reading in the 100kb bins and creating 2.5Mb bins

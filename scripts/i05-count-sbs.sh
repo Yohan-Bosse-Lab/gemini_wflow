@@ -1,26 +1,17 @@
-#!/bin/bash
-
-#$ -cwd
-#$ -j y
-#$ -l mem_free=12G
-#$ -l h_vmem=12G
-#$ -pe local 16
-#$ -t 1-163
-#$ -l cancergen
-
 #-------
 # Input
 #---------------------------------------------------------------------------------------------------------------
-bamDir=../bams
+#bamDir=/mnt/sde/renseb01/Documents/gemini_wflow/bams
 outDir=../outDir
 tmpDir=../temp
-nProcesses=16
+nProcesses=10
 #---------------------------------------------------------------------------------------------------------------
 
-module load conda_R/4.0.x
 
-bamFile=$(ls -1v $bamDir/*bam | head -n $SGE_TASK_ID | tail -n 1)
+#bamFile=$(ls -1v $bamDir/*bam | head -n $SGE_TASK_ID | tail -n 1)
+#bamFile=$(ls -1v $bamDir/*bam |head -1)
+echo $bamFile 
+#mkdir -p $outDir
 
-mkdir -p $outDir
-
-Rscript ./i05-count-sbs.R $bamFile $outDir $tmpDir $nProcesses
+#Rscript ./genno05-count-sbs.R $bamFile $outDir $tmpDir $nProcesses
+Rscript ./i05-count-sbs.R /mnt/sde/renseb01/Documents/gemini_wflow/bams/file3.bam $outDir $tmpDir $nProcesses
