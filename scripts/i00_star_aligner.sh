@@ -1,7 +1,13 @@
+#!/bin/bash
+
+#dir
 genomedir='/mnt/sde/renseb01/Documents/rnaseq/data/reference_genome/GRCh37'
 fastqdir='/mnt/sde/renseb01/Documents/gemini_wflow/fastq/'
 annotation_gtf='/mnt/sde/renseb01/Documents/rnaseq/data/reference_genome/gencode.v19.annotation.gtf'
+bamdir='/mnt/sde/renseb01/Documents/gemini_wflow/bams/'
 
+
+#for loop
 for R1 in $fastqdir/*R1.fastq.gz
   do
     echo $R1
@@ -24,7 +30,23 @@ for R1 in $fastqdir/*R1.fastq.gz
     --outFilterMultimapNmax 100 \
     --outReadsUnmapped None \
     --quantMode GeneCounts \
-    --sjdbGTFfile $annotation_gtf \
+   --sjdbGTFfile $annotation_gtf \
     --runThreadN 12 \
-    --outFileNamePrefix /mnt/sde/renseb01/Documents/gemini_wflow/bams/$file 1>/mnt/sde/renseb01/Documents/gemini_wflow/bams/star.log 2>/mnt/sde/renseb01/Documents/gemini_wflow/bams/star.err
+    --outFileNamePrefix {$bamdir$file} 1>{$bamdir'star.log'} 2>{$bamdir'star.err'}
+  done
+
+
+
+for R1 in $fastqdir/*R1.fastq.gz
+  do
+    temp=${R1//'/mnt/sde/renseb01/Documents/gemini_wflow/fastq//'}
+    file=${temp//'_R1.fastq.gz'/}
+
+
+    #cleanup
+    mv $bamdir$file'Aligned.sortedByCoord.out.bam' $bamdir$file'.bam'
+
+    rm -r $bamdir*STARgenome*
+    rm $bamdir*og*
+    rm $bamdir*tab
   done

@@ -31,7 +31,9 @@ for (i in 1:length(ct_grps)) {
 }
 
 # Reading in sample metadata
-meta.df <- readRDS("../data/metadata.rds")
+#meta.df <- readRDS("../data/metadata.rds")
+meta.df = read.csv('../data/metadata.csv')
+
 
 # Creating a RangedSummarizedExperiment to hold the data
 se <- SummarizedExperiment(assays = assay.list,
