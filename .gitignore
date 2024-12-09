@@ -1,3 +1,5 @@
-/bams
+/bams/*
 /temp
-/outDir
+/outDir/*
+/fastq/*
+/scripts/*log*
