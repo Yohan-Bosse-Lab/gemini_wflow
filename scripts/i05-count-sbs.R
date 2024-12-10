@@ -1,4 +1,4 @@
-# Note: bam file is assumed to be sorted and indexed with duplicate fragments marked or removed
+print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))# Note: bam file is assumed to be sorted and indexed with duplicate fragments marked or removed
 
 args <- commandArgs(trailingOnly = TRUE)
 bamFile <- args[1]
@@ -6,19 +6,22 @@ outDir <- args[2]
 tmpDir <- args[3]
 nProcesses <- as.numeric(args[4])
 
-library(dplyr)
-library(tidyr)
-library(readr)
-library(tibble)
-library(data.table)
-library(GenomicAlignments)
-library(BSgenome.Hsapiens.UCSC.hg19)
-library(BSgenome.Hsapiens.UCSC.hg38)
-library(Biostrings)
-library(VariantAnnotation)
-library(rtracklayer)
-library(foreach)
-library(doParallel)
+
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyr))
+suppressMessages(library(readr))
+suppressMessages(library(tibble))
+suppressMessages(library(data.table))
+suppressMessages(library(GenomicAlignments))
+suppressMessages(library(BSgenome.Hsapiens.UCSC.hg19))
+suppressMessages(library(BSgenome.Hsapiens.UCSC.hg38))
+suppressMessages(library(Biostrings))
+suppressMessages(library(VariantAnnotation))
+suppressMessages(library(rtracklayer))
+suppressMessages(library(foreach))
+suppressMessages(library(doParallel))
+print(paste0('Done loading packages, Time is: ',Sys.time()))
+
 
 # Setting up the parallel computing environment
 cl <- makeCluster(nProcesses)

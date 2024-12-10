@@ -6,6 +6,14 @@ wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37
 https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/
 
 #0.3 STAR index the genome.
+STAR --genomeSAindexNbases 12 \
+     --runThreadN 12 \
+     --runMode genomeGenerate \
+     --genomeDir GRCh37 \
+     --genomeFastaFiles GRCh37.p13.genome.fa \
+     --sjdbGTFfile gencode.v19.annotation.gtf \
+     --sjdbOverhang 99 \
+
 
 #0.4 Align reads against genome using STAR . Also index bam files
 nohup ./star_aligner.sh  >Car_aligner.log&
@@ -16,10 +24,7 @@ samtools index *bam
 
 #2.Download gnomad (for a list of germline variants to exclude)
 
-
-
-
-tmpDir=../temp
+temp=../temp/
 outDir=../outDir/gnomad
 #-------------------------
 

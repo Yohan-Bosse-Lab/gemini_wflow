@@ -1,5 +1,5 @@
 library(tidyr)
-library(SummarizedExperiment)
+suppressMessages(library(SummarizedExperiment))
 
 # Reading in the 100kb bins and creating 2.5Mb bins
 bins <- readRDS("../outDir/bins/bins_100kb.rds")
@@ -9,9 +9,9 @@ names(bins) <- paste0("bin", 1:length(bins))
 
 #-------------------------------------------------------------------------------
 # Creating a RangedSumamrizedExperiment to hold bins, bin counts, and metadata
-#-------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 ctDir <- "../outDir/cts"
-ctFiles <- list.files(ctDir)
+ctFiles <- list.files(ctDir,pattern = 'rds')
 ct.list <- lapply(ctFiles, function(t) readRDS(file.path(ctDir, t)))
 
 for (i in 1:length(ct.list)) {
@@ -26,25 +26,23 @@ ct_grps <- colnames(mcols(ct.list[[1]])) %>% .[-grep("known", .)]
 assay.list <- vector("list", length(ct_grps)) %>% setNames(., ct_grps)
 for (i in 1:length(ct_grps)) {
   x <- lapply(ct.list, function(t) mcols(t)[, ct_grps[i]]) %>% do.call("cbind", .)
-  dimnames(x) <- list(names(bins),  gsub(".sorted_cts.rds", "", ctFiles))
+  dimnames(x) <- list(names(bins),  gsub("_cts.rds", "", ctFiles))
   assay.list[[ct_grps[i]]] <- x
 }
 
 # Reading in sample metadata
-#meta.df <- readRDS("../data/metadata.rds")
 meta.df = read.csv('../data/metadata.csv')
-
 
 # Creating a RangedSummarizedExperiment to hold the data
 se <- SummarizedExperiment(assays = assay.list,
                            rowRanges = bins,
                            colData = meta.df)
-#-------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------
 
 
 #--------------------------------------------------------------------
 # Generating regional differences in mutation frequencies using LOO
-#----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------
 # Defining the types of mutations to analyze
 types <- list(cg2at = c("cg", "cg2at"), cg2gc = c("cg", "cg2gc"), cg2ta = c("cg", "cg2ta"),
               ta2at = c("ta", "ta2at"), ta2cg = c("ta", "ta2cg"), ta2gc = c("ta", "ta2gc"))
@@ -62,7 +60,7 @@ for (i in 1:length(metadata(se))) {
 }
 
 for (i in 1:ncol(se)) {
-  print(noquote(paste0(i, "/", ncol(se))))
+  print(noquote(paste0(i, "/", ncol(se), ', Time is: ',Sys.time())))
   se.loo <- se[,-i]
   se.lo <- se[,i]
 
@@ -122,15 +120,19 @@ for (i in 1:ncol(se)) {
   } # End of j loop
 
 } # End of i loop
-#----------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 
-#-----------------------------------------------------
+#-------------------------------------------------------------------------------
 # Computing the GEMINI score [C>A] for each patient
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 gemini_fit_cg2at <- glm(factor(patient_type, levels = c("Control", "Case")) ~ multimf_cg2at, data = colData(se), family = "binomial")
 se$gemini_score_cg2at <- gemini_fit_cg2at$fitted.values
 print(se$gemini_score_cg2at)
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+
+gemini_df = data.frame(id = names(se$gemini_score_cg2at), gemini_score = se$gemini_score_cg2at)
+
+write.csv(gemini_df,'../outDir/gemini_score.csv')
+#-------------------------------------------------------------------------------
 
 
