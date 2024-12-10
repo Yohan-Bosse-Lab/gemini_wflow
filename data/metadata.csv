@@ -1,5 +1,9 @@
 id,patient_type
-file1,file1,Control
-file2,file2,Case
-file3,file3,Case
-file4,file4,Control
+Buffy11352,Buffy11352,Control
+Buffy11533,Buffy11533,Control
+Buffy13558,Buffy13558,Control
+Buffy13767,Buffy13767,Control
+Tumor11352,Tumor11352,Case
+Tumor11533,Tumor11533,Case
+Tumor13558,Tumor13558,Case
+Tumor13767,Tumor13767,Case
