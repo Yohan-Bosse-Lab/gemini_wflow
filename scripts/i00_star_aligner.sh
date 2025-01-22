@@ -32,7 +32,7 @@ for R1 in $fastqdir/*R1.fastq.gz
     --quantMode GeneCounts \
    --sjdbGTFfile $annotation_gtf \
     --runThreadN 12 \
-    --outFileNamePrefix {$bamdir$file} 1>{$bamdir'star.log'} 2>{$bamdir'star.err'}
+    --outFileNamePrefix $bamdir$file 1>$bamdir'star.log' 2>$bamdir'star.err'
   done
 
 
@@ -44,7 +44,7 @@ for R1 in $fastqdir/*R1.fastq.gz
 
 
     #cleanup
-    mv $bamdir$file'Aligned.sortedByCoord.out.bam' $bamdir$file'.bam'
+    mv $bamdir$file'_Aligned.sortedByCoord.out.bam' $bamdir$file'.bam'
 
     rm -r $bamdir*STARgenome*
     rm $bamdir*og*

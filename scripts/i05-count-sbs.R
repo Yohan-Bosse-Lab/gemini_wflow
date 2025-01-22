@@ -1,4 +1,4 @@
-print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))print(paste0('end of j loop ', j,',out of ',length(binsN),' binsN, The time is: ',Sys.time()))# Note: bam file is assumed to be sorted and indexed with duplicate fragments marked or removed
+# Note: bam file is assumed to be sorted and indexed with duplicate fragments marked or removed
 
 args <- commandArgs(trailingOnly = TRUE)
 bamFile <- args[1]

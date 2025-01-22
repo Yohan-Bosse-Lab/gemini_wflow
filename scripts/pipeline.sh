@@ -16,7 +16,7 @@ STAR --genomeSAindexNbases 12 \
 
 
 #0.4 Align reads against genome using STAR . Also index bam files
-nohup ./star_aligner.sh  >Car_aligner.log&
+nohup ./star_aligner.sh  >star_aligner.log&
 samtools index *bam
 
 

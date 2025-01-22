@@ -12,6 +12,7 @@ names(bins) <- paste0("bin", 1:length(bins))
 #-------------------------------------------------------------------------------
 ctDir <- "../outDir/cts"
 ctFiles <- list.files(ctDir,pattern = 'rds')
+ctFiles = ctFiles[grep('NS',ctFiles,invert = T)]
 ct.list <- lapply(ctFiles, function(t) readRDS(file.path(ctDir, t)))
 
 for (i in 1:length(ct.list)) {
@@ -38,8 +39,6 @@ se <- SummarizedExperiment(assays = assay.list,
                            rowRanges = bins,
                            colData = meta.df)
 #--------------------------------------------------------------------
-
-
 #--------------------------------------------------------------------
 # Generating regional differences in mutation frequencies using LOO
 #--------------------------------------------------------------------
@@ -86,17 +85,18 @@ for (i in 1:ncol(se)) {
       grp2.variant <- rowSums(assays(se.loo)[[v.pyR1]][,grp2.ind]) + rowSums(assays(se.loo)[[v.puR1]][,grp2.ind])
     }
 
-    grp1.mpm <- grp1.variant / grp1.eval * 1e6
-    grp2.mpm <- grp2.variant / grp2.eval * 1e6
+    grp1.mpm <- grp1.variant / grp1.eval * 1e6 #case
+    grp2.mpm <- grp2.variant / grp2.eval * 1e6 #control
 
     # Computing the difference in mutation frequency between grp1 and grp2
     rd <- grp1.mpm - grp2.mpm
 
     # Ordering the bins by difference in mutation frequency between grp1 and grp2
-    ord.bins <- names(sort(rd))
-    pos.bins <- tail(ord.bins, 114)
-    neg.bins <- head(ord.bins, 114)
-
+    if(i ==1) 
+      {ord.bins <- names(sort(rd))
+    pos.bins <- tail(ord.bins, 114)#case
+    neg.bins <- head(ord.bins, 114)}#control
+    
     # Computing the regional mutation frequency in the held out sample using the bins with the largest differential mutation density
     if (names(types[j]) == "cg2at") {
       pos.dens.lo <- sum(assays(se.lo)[[v.pyR1]][pos.bins,]) / sum(assays(se.lo)[[e.pyR1]][pos.bins,])
@@ -127,12 +127,14 @@ for (i in 1:ncol(se)) {
 # Computing the GEMINI score [C>A] for each patient
 #-------------------------------------------------------------------------------
 gemini_fit_cg2at <- glm(factor(patient_type, levels = c("Control", "Case")) ~ multimf_cg2at, data = colData(se), family = "binomial")
-se$gemini_score_cg2at <- gemini_fit_cg2at$fitted.values
-print(se$gemini_score_cg2at)
+se$gemini_score <- gemini_fit_cg2at$fitted.values
+print(se$gemini_score)
 
-gemini_df = data.frame(id = names(se$gemini_score_cg2at), gemini_score = se$gemini_score_cg2at)
+gemini_df = data.frame(id = names(se$gemini_score), gemini_score = se$gemini_score, multimf_cg2at = se$multimf_cg2at)
 
 write.csv(gemini_df,'../outDir/gemini_score.csv')
 #-------------------------------------------------------------------------------
+
+
 
 
