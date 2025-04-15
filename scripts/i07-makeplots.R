@@ -37,8 +37,8 @@ IUCPQ_data$provenance[nchar(IUCPQ_data$ID) == 10] = 'GQ'
 #données sujet:
 donnees_sujet = readxl::read_xlsx('../data/Données_sujets_cfDNA_2025-01-30.xlsx')
 IUCPQ_data = merge(IUCPQ_data,donnees_sujet , by = 'Record ID')
-IUCPQ_data$`Histological type`[IUCPQ_data$`Histological type`=='Adenocarcinoma'] = 'Adeno-\ncarcinoma'
-IUCPQ_data$`Histological type`[IUCPQ_data$`Histological type`=='Squamous cell carcinoma'] = 'Squamous cell\ncarcinoma'
+IUCPQ_data$`Histological type`[IUCPQ_data$`Histological type`=='Adenocarcinoma'] = 'LUAD'
+IUCPQ_data$grade = gsub(' differentiated','\ndifferentiated',IUCPQ_data$grade)
 
 #plot
 gemini_score_plot4 = ggplot() +
@@ -75,25 +75,29 @@ dev.off()
 variables = c('provenance','grade','Histological type','Predominant feature','Histopathological specification','Sex at birth')
 gemini_box = list()
 for(i in 1:6){
-  gemini_box[[i]] = ggplot(IUCPQ_data,aes(x = .data[[variables[i]]], y = IUCPQ_predicted_data, fill = .data[[variables[i]]])) +
+  gemini_box[[i]] = IUCPQ_data %>% dplyr::filter(!(is.na(.data[[variables[i]]])) ) %>% ggplot(aes(x = .data[[variables[i]]], y = IUCPQ_predicted_data, fill = .data[[variables[i]]])) +
     geom_boxplot(outliers = F) +
-    geom_jitter(color="black", size=1, alpha=0.9) + 
+    geom_jitter(color="black", size=1, alpha=0.9,position = position_jitter(0.1)) + 
     geom_hline(yintercept = 0.55,linetype = 'dashed',col = 'red') +
-    annotate("text", label = "Cancer detection threshold",x=0.9,y = 0.57, size = 3, colour = "red") +
-    ylab('Gemini score') + 
+    annotate("text", label = "Cancer detection\nthreshold",x=1.2,y = 0.55, size = 3, colour = "red") +
+    ylab('GEMINI score') + 
+    ylim(c(0.5,1)) +
+    xlab('') +
     guides(fill="none") + 
-    theme_bw()# +
-  #  theme(axis.text.x = element_text(angle = 45, hjust=1))
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust=1))
 }
 
 #
-pdf(file.path(paste0('../figures/Figure_Gemini_boxplot.pdf')),width = 4,height = 4)
+#pdf(file.path(paste0('../figures/Figure_Gemini_ADKsquamous.pdf')),width = 2,height = 4)
+pdf(file.path(paste0('../figures/Figure_Gemini_G2G3.pdf')),width = 2,height = 4)
 #(gemini_box[[1]]|gemini_box[[2]]|gemini_box[[3]]) / (gemini_box[[4]]|gemini_box[[5]]|gemini_box[[6]]) + plot_layout(axes = "collect")
-gemini_box[[3]]
+gemini_box[[2]]
 dev.off()
 
- # geom_point(data = IUCPQ_data,aes(x=multimf_cg2at,y=IUCPQ_predicted_data,col = `Histological type`),pch = 4,stroke =4, alpha = 1,inherit.aes =F) +
- #  geom_text_repel(data = IUCPQ_data,aes(x=multimf_cg2at,y=IUCPQ_predicted_data,label = ID), hjust = -0.1) + 
+
+# geom_point(data = IUCPQ_data,aes(x=multimf_cg2at,y=IUCPQ_predicted_data,col = `Histological type`),pch = 4,stroke =4, alpha = 1,inherit.aes =F) +
+# geom_text_repel(data = IUCPQ_data,aes(x=multimf_cg2at,y=IUCPQ_predicted_data,label = ID), hjust = -0.1) + 
   scale_color_manual(values=RColorBrewer::brewer.pal(n = 4,'Set1')[1:4]) +
   theme_bw() + 
   xlab('Regional difference in single molecule C>A frequency (per Mb of evaluable bases)') +
@@ -107,3 +111,5 @@ dev.off()
 #dev.off()
 
 
+
+  

@@ -6,7 +6,8 @@
 *  [repo](https://github.com/cancer-genomics/gemini_wflow)
 
 ### Modifications
-* add scripts for STAR alignment from `.fastq` files prior to the gemini pipeline.
+* add scripts for STAR alignment and HISAT2 (better) from `.fastq` files prior to the gemini pipeline.
+* add script for alignment statistics.
 * add `print()` to facilitate debugging and time/CPU consumption.
 * metadata re-structure
 * minor refactoring 
