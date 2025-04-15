@@ -15,10 +15,27 @@ processed_files = c(processed_files1,processed_files2)
 aligned_files =  list.files('/mnt/sde/renseb01/Documents/gemini_wflow/bams_hisat/',pattern = 'sorted.bam$',full.names = T)
 
 #results_df
-results = data.frame(raw_files = raw_files, processed_files = processed_files, aligned_files = aligned_files, raw = 0, processed = 0, aligned = 0, raw_p = 0, processed_p = 0, aligned_p = 0,insert_size = 0)
+results = data.frame(raw_files = raw_files, processed_files = processed_files, aligned_files = aligned_files, raw = 0, processed = 0, aligned = 0, raw_p = 0,
+processed_p = 0, aligned_p = 0,insert_size = 0,coverage = 0, X1 = 0)
 
 #for loop
 for(i in 1:nrow(results)){
+  #coverage
+    temp_coverage = NULL
+    temp_X1 = NULL
+  for c in 1:3{
+    chr = c("chr1","chr10","chr20")
+    system(paste0("samtools coverage -r ",chr[c]," ",aligned_files[i]," >cov_temp"))
+    cov_temp = read.table('cov_temp')
+    temp_coverage = c(temp_coverage,cov_temp$V6)
+    temp_X1 = c(temp_X1,cov_temp$V7)
+  }
+  
+  #coverage
+  results$coverage[i] = mean(temp_coverage)
+  results$X1[i] = mean(X1)
+
+
   #median insert size
   system(paste0("samtools view ",aligned_files[i] ,"| head -10000000 | awk '{print $9}' >temp_insertsize"))
   temp_insertsize = read.table('temp_insertsize')
@@ -48,7 +65,7 @@ for(i in 1:nrow(results)){
   print(paste0('Done ',i,', The time is: ',Sys.time()))
 }
 
-system('rm idxstats.raw idxstats.processed idxstats.aligned temp_insertsize')
+system('rm idxstats.raw idxstats.processed idxstats.aligned temp_insertsize cov_temp')
 
 #
 results$aligned_p = round(results$aligned / results$processed * 50,2)
