@@ -18,22 +18,26 @@ aligned_files =  list.files('/mnt/sde/renseb01/Documents/gemini_wflow/bams_hisat
 results = data.frame(raw_files = raw_files, processed_files = processed_files, aligned_files = aligned_files, raw = 0, processed = 0, aligned = 0, raw_p = 0,
 processed_p = 0, aligned_p = 0,insert_size = 0,coverage = 0, X1 = 0)
 
+print(paste0('Start loop, Time is: ',Sys.time()))
+
 #for loop
 for(i in 1:nrow(results)){
   #coverage
     temp_coverage = NULL
     temp_X1 = NULL
-  for c in 1:3{
+  for (c in 1:3){
     chr = c("chr1","chr10","chr20")
     system(paste0("samtools coverage -r ",chr[c]," ",aligned_files[i]," >cov_temp"))
     cov_temp = read.table('cov_temp')
     temp_coverage = c(temp_coverage,cov_temp$V6)
     temp_X1 = c(temp_X1,cov_temp$V7)
   }
+
+  print(paste0('Done covtemp, Time is: ',Sys.time()))
   
   #coverage
   results$coverage[i] = mean(temp_coverage)
-  results$X1[i] = mean(X1)
+  results$X1[i] = mean(temp_X1)
 
 
   #median insert size
